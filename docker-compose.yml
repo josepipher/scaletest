@@ -1,0 +1,35 @@
+version: '2'
+services:
+  sut:
+    build: .
+    build:
+      context: .
+      dockerfile: Dockerfile.test
+    links:
+      - lb
+  ab:
+    image: wdalmut/ab
+    command: /usr/bin/ab -n 10000 -c 30 http://192.168.99.100:500/
+    links:
+      - lb
+  web:
+    build: .
+    build:
+      context: .
+      dockerfile: Dockerfile
+    links:
+      - redis
+    expose:
+      - "80"
+    restart: always
+  redis:
+    image: redis
+  lb:
+    image: dockercloud/haproxy
+    ports:
+      - "500:80"
+    links:
+      - web
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
+    restart: always
